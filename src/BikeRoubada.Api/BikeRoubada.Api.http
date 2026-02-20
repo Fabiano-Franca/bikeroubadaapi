@@ -1,0 +1,6 @@
+@BikeRoubada.Api_HostAddress = http://localhost:5089
+
+GET {{BikeRoubada.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
