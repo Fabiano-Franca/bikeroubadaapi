@@ -27,6 +27,12 @@ internal class Program
         builder.Services.AddControllers()
             .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+        });
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -174,6 +180,8 @@ internal class Program
 
         var app = builder.Build();
 
+        app.UseForwardedHeaders();
+
         // 2. Bloco de Migração Automática
         using (var scope = app.Services.CreateScope())
         {
@@ -210,7 +218,7 @@ internal class Program
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bike Roubada API V1");
-            c.RoutePrefix = string.Empty; // Isso faz o Swagger abrir direto na URL principal
+            //c.RoutePrefix = string.Empty; // Isso faz o Swagger abrir direto na URL principal
         });
 
         //app.UseHttpsRedirection();
