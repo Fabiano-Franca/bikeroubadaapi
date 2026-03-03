@@ -81,9 +81,19 @@ namespace BikeRoubada.Api.Controllers
                 return CustomResponse();
             }
 
-            await _bicicletaService.Atualizar(_mapper.Map<Bicicleta>(bicicletaApenasViewModel));
-            return CustomResponse(System.Net.HttpStatusCode.Created, new { bicicletaApenasViewModel });
+            var bike = _bicicletaRepository.ObterPorId(id).Result;
 
+            if (bike == null)
+            {
+                NotificarErro("Bicicleta não encontrada");
+                return CustomResponse();
+            }
+
+            var bikeConvertida = _mapper.Map<Bicicleta>(bicicletaApenasViewModel);
+            bikeConvertida.LocalizacaoCadastro = bike.LocalizacaoCadastro;
+
+            await _bicicletaService.Atualizar(bikeConvertida);
+            return CustomResponse(System.Net.HttpStatusCode.Created, new { bicicletaApenasViewModel });
         }
 
 
