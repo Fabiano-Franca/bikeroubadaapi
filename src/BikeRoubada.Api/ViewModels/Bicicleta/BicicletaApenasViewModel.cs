@@ -13,6 +13,7 @@ namespace BikeRoubada.Api.ViewModels.Bicicleta
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         public string? Descricao { get; set; }
         public string? Detalhes { get; set; }
+        [Required(ErrorMessage = "A localização de cadastro é obrigatória para fins de segurança.")]
         public SimplePoint? LocalizacaoCadastro { get; set; }
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         public Guid IdEndereco { get; set; }

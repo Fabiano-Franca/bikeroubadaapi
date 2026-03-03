@@ -58,13 +58,18 @@ namespace BikeRoubada.Api.Controllers
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            // Mapeie apenas uma vez e use essa variável
+            // Validação extra: Garantir que não enviaram coordenadas zeradas
+            if (bicicletaApenasViewModel.LocalizacaoCadastro?.X == 0 &&
+                bicicletaApenasViewModel.LocalizacaoCadastro?.Y == 0)
+            {
+                NotificarErro("Coordenadas de GPS inválidas. O cadastro requer uma posição real.");
+                return CustomResponse();
+            }
+
             var bicicletaParaAdicionar = _mapper.Map<Bicicleta>(bicicletaApenasViewModel);
             var bikeCadastrada = await _bicicletaService.Adicionar(bicicletaParaAdicionar);
 
-            // Verifique se o CustomResponse não está falhando ao tentar serializar a 'bikeCadastrada'
-            return CustomResponse(System.Net.HttpStatusCode.Created, new { bikeCadastrada } );
-            //return CustomResponse(HttpStatusCode.Created, new { id = bikeCadastradaViewModel.Id });
+            return CustomResponse(System.Net.HttpStatusCode.Created, new { bikeCadastrada });
         }
 
         [HttpPut]
