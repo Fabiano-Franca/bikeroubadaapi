@@ -30,14 +30,11 @@ namespace BikeRoubada.Api.Controllers
         {
             var usuarios = await _usuarioRepository.ObterTodos();
 
-            // O mapeamento automático já deve levar a string de usuario.FotoPerfil 
-            // para a propriedade correspondente na ViewModel
             var viewModels = _mapper.Map<IEnumerable<UsuarioApenasViewModel>>(usuarios);
 
             return Ok(viewModels);
         }
 
-        // 2. Ajustado para retornar o usuário com a foto em Base64 direto do banco
         [HttpGet("obter-por-id")]
         public async Task<ActionResult<UsuarioApenasViewModel>> ObterPorId(Guid id)
         {
@@ -45,9 +42,6 @@ namespace BikeRoubada.Api.Controllers
             if (usuario == null) return NotFound();
 
             var viewModel = _mapper.Map<UsuarioApenasViewModel>(usuario);
-
-            // NÃO PRECISA MAIS DE PreencherFotoPerfilBase64, pois a string 
-            // já está na propriedade FotoPerfil vinda do banco.
 
             return CustomResponse(HttpStatusCode.OK, viewModel);
         }
@@ -68,7 +62,6 @@ namespace BikeRoubada.Api.Controllers
                 return CustomResponse(HttpStatusCode.NotFound);
             }
 
-            // CONVERSÃO E PERSISTÊNCIA NO BANCO
             using (var ms = new MemoryStream())
             {
                 await FormContent.CopyToAsync(ms);
@@ -84,8 +77,6 @@ namespace BikeRoubada.Api.Controllers
             return CustomResponse(HttpStatusCode.OK, new { fotoPerfil = usuario.FotoPerfil });
         }
 
-        // 3. REMOVIDO OU COMENTADO: ObterFotoPerfil (pois não há mais arquivos físicos)
-        // Se o App precisar de um endpoint que retorne apenas a string:
         [HttpGet("obter-string-foto")]
         public async Task<IActionResult> ObterStringFoto(Guid idUsuario)
         {
@@ -95,53 +86,6 @@ namespace BikeRoubada.Api.Controllers
 
             return Ok(new { fotoBase64 = user.FotoPerfil });
         }
-
-        //[HttpPut]
-        //public async Task<ActionResult<UsuarioApenasViewModel>> Atualizar2(Guid id, [FromForm] UsuarioApenasViewModel usuarioApenasViewModel)
-        //{
-        //    if (id != usuarioApenasViewModel.Id)
-        //    {
-        //        NotificarErro("O parâmetro id é diferente do objeto fornecido");
-        //        return CustomResponse();
-        //    }
-
-        //    if (!ModelState.IsValid) return CustomResponse(ModelState);
-
-        //    var usuario = _mapper.Map<Usuario>(usuarioApenasViewModel);
-        //    await _usuarioService.Atualizar(usuario);
-
-        //    var usuarioAtualizado = await _usuarioRepository.ObterPorId(id);
-        //    return CustomResponse(HttpStatusCode.OK, _mapper.Map<UsuarioApenasViewModel>(usuarioAtualizado));
-        //}
-
-        //[HttpPut]
-        //public async Task<ActionResult<UsuarioApenasViewModel>> Atualizar2(Guid id, [FromForm] UsuarioApenasViewModel usuarioApenasViewModel)
-        //{
-        //    if (id != usuarioApenasViewModel.Id)
-        //    {
-        //        NotificarErro("O parâmetro id é diferente do objeto fornecido");
-        //        return CustomResponse();
-        //    }
-
-        //    if (!ModelState.IsValid) return CustomResponse(ModelState);
-
-        //    // 1. Busca o usuário atual no banco de dados para não perder a foto
-        //    var usuarioBanco = await _usuarioRepository.ObterPorId(id);
-        //    if (usuarioBanco == null) return NotFound();
-
-        //    // 2. Atualiza apenas os campos de texto vindos da ViewModel
-        //    usuarioBanco.Nome = usuarioApenasViewModel.Nome;
-        //    usuarioBanco.Email = usuarioApenasViewModel.Email;
-        //    usuarioBanco.Telefone = usuarioApenasViewModel.Telefone;
-        //    usuarioBanco.IdentificadorPessoal = usuarioApenasViewModel.IdentificadorPessoal;
-        //    usuarioBanco.Genero = usuarioApenasViewModel.Genero;
-        //    usuarioBanco.TipoPessoa = (TipoPessoa)usuarioApenasViewModel.TipoPessoa;
-
-        //    // A FotoPerfil permanece a que já estava no 'usuarioBanco'
-        //    await _usuarioService.Atualizar(usuarioBanco);
-
-        //    return CustomResponse(HttpStatusCode.OK, _mapper.Map<UsuarioApenasViewModel>(usuarioBanco));
-        //}
 
         [HttpPut]
         public async Task<ActionResult<UsuarioApenasViewModel>> Atualizar(Guid id, [FromForm] UsuarioApenasViewModel usuarioApenasViewModel)

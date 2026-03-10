@@ -47,61 +47,130 @@ namespace BikeRoubada.Api.Controllers
             _emailSender = emailSender;
             _usuarioService = usuarioService;
             _mapper = mapper;
-        }   
+        }
+
+        //[HttpPost("register")]
+        //public async Task<ActionResult> Register(RegisterUserViewModel register)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return CustomResponse(HttpStatusCode.BadRequest,  ModelState);
+        //    }
+
+        //    if(_usuarioRepository.Buscar(u => u.Email == register.Email).Result.Any())
+        //    {
+        //        NotificarErro("Já existe um usuario cadastrado com o email fornecido");
+        //        return CustomResponse(HttpStatusCode.BadRequest);
+        //    }
+
+        //    var usuario = _mapper.Map<Usuario>(register);
+        //    await _usuarioService.Adicionar(usuario);
+
+
+        //    var user = new IdentityUser
+        //    {
+        //        UserName = register.Email,
+        //        Email = register.Email
+        //    };
+
+
+        //    var result = await _userManager.CreateAsync(user, register.Password);
+        //    if (!result.Succeeded)
+        //    {
+        //        NotificarErro("Falha ao criar registro");
+        //        return CustomResponse(HttpStatusCode.BadRequest);
+        //    }
+
+        //    await _signInManager.SignInAsync(user, false);
+        //    var codeResponse = CodeResponses.UserCreatedEmailSended;
+        //    try
+        //    {
+        //        await EnviarEmailConfirmacao(user);
+        //    } catch(Exception ex)
+        //    {
+        //        codeResponse = CodeResponses.UserCreatedEmailNotSended;
+        //    }
+
+
+        //    return CustomResponse(HttpStatusCode.Created, 
+        //        new { 
+        //            token = await GerarJwt(user.Email),
+        //            usuario
+        //        });
+        //}
 
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterUserViewModel register)
         {
             if (!ModelState.IsValid)
             {
-                return CustomResponse(HttpStatusCode.BadRequest,  ModelState);
+                return CustomResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
-            if(_usuarioRepository.Buscar(u => u.Email == register.Email).Result.Any())
+            // 1. Verifica se já existe na tabela de negócio
+            var usuarioExistente = await _usuarioRepository.Buscar(u => u.Email == register.Email);
+            if (usuarioExistente.Any())
             {
                 NotificarErro("Já existe um usuario cadastrado com o email fornecido");
                 return CustomResponse(HttpStatusCode.BadRequest);
             }
 
-            var usuario = _mapper.Map<Usuario>(register);
-            await _usuarioService.Adicionar(usuario);
-
-         
-
+            // 2. TENTA CRIAR NO IDENTITY PRIMEIRO
             var user = new IdentityUser
             {
                 UserName = register.Email,
                 Email = register.Email
             };
 
-           
             var result = await _userManager.CreateAsync(user, register.Password);
+
             if (!result.Succeeded)
             {
-                NotificarErro("Falha ao criar registro");
+                // Se a senha for fraca, o Identity falha aqui.
+                // Pegamos os erros exatos e devolvemos. Não precisamos fazer rollback na tabela de negócio porque nem chegamos a inserir nela!
+                foreach (var error in result.Errors)
+                {
+                    NotificarErro(error.Description);
+                }
                 return CustomResponse(HttpStatusCode.BadRequest);
             }
 
+            // 3. SE O IDENTITY DEU CERTO, CRIAMOS NA TABELA DE NEGÓCIO
+            var usuario = _mapper.Map<Usuario>(register);
+
+            try
+            {
+                await _usuarioService.Adicionar(usuario);
+            }
+            catch (Exception)
+            {
+                // --- ROLLBACK DO IDENTITY ---
+                // Se por um acaso o seu banco de dados falhar (ex: queda de conexão) na hora de salvar na tabela 'Usuarios', 
+                // nós deletamos o usuário que acabou de ser criado no Identity para não gerar inconsistência.
+                await _userManager.DeleteAsync(user);
+
+                NotificarErro("Falha interna ao cadastrar usuário. Tente novamente.");
+                return CustomResponse(HttpStatusCode.InternalServerError);
+            }
+
+            // 4. Fluxo de Sucesso (Login e Envio de E-mail)
             await _signInManager.SignInAsync(user, false);
             var codeResponse = CodeResponses.UserCreatedEmailSended;
             try
             {
                 await EnviarEmailConfirmacao(user);
-            } catch(Exception ex)
+            }
+            catch (Exception)
             {
                 codeResponse = CodeResponses.UserCreatedEmailNotSended;
             }
-            
 
-            return CustomResponse(HttpStatusCode.Created, 
-                new { 
+            return CustomResponse(HttpStatusCode.Created,
+                new
+                {
                     token = await GerarJwt(user.Email),
                     usuario
-                    //nome = register.Nome, 
-                    //email = register.Email,  
-                    //codeResponse = codeResponse
                 });
-
         }
 
         [HttpGet("reenviar-email-confirmacao")]

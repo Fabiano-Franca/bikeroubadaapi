@@ -1,4 +1,5 @@
 ﻿using BikeRoubada.Api.Data;
+using BikeRoubada.Api.Utilities;
 using BikeRoubada.Data.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace BikeRoubada.Api.Configurations
                 .AddIdentity<IdentityUser, IdentityRole>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApiDbContext>()
+                .AddErrorDescriber<TradutorMensagensIdentity>()
                 .AddDefaultTokenProviders();
             return services;
         }

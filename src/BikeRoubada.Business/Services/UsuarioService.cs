@@ -40,10 +40,10 @@ namespace BikeRoubada.Business.Services
         public async Task Atualizar(Usuario usuario)
         {
 
-            if (!_usuarioRepository.Buscar(u => u.IdentificadorPessoal == usuario.IdentificadorPessoal).Result.Any())
-            {
-                Notificar("Não existe um usuário com o identificador pessoal fornecido");
-            }
+            //if (!_usuarioRepository.Buscar(u => u.IdentificadorPessoal == usuario.IdentificadorPessoal).Result.Any())
+            //{
+            //    Notificar("Não existe um usuário com o identificador pessoal fornecido");
+            //}
 
             if (!ExecutarValidacao(new UsuarioValidation(), usuario))
             {
