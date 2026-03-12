@@ -220,16 +220,11 @@ namespace BikeRoubada.Data.Migrations
                     b.Property<int>("Numero")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("RouboId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("Rua")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RouboId");
 
                     b.ToTable("Localizacao", (string)null);
                 });
@@ -267,7 +262,8 @@ namespace BikeRoubada.Data.Migrations
 
                     b.HasIndex("IdBicicleta");
 
-                    b.HasIndex("IdLocalizacao");
+                    b.HasIndex("IdLocalizacao")
+                        .IsUnique();
 
                     b.ToTable("Roubos", (string)null);
                 });
@@ -397,16 +393,6 @@ namespace BikeRoubada.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("BikeRoubada.Business.Models.Localizacao", b =>
-                {
-                    b.HasOne("BikeRoubada.Business.Models.Roubo", "Roubo")
-                        .WithMany()
-                        .HasForeignKey("RouboId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Roubo");
-                });
-
             modelBuilder.Entity("BikeRoubada.Business.Models.Roubo", b =>
                 {
                     b.HasOne("BikeRoubada.Business.Models.Bicicleta", "Bicicleta")
@@ -416,8 +402,8 @@ namespace BikeRoubada.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("BikeRoubada.Business.Models.Localizacao", "Localizacao")
-                        .WithMany("Roubos")
-                        .HasForeignKey("IdLocalizacao")
+                        .WithOne("Roubo")
+                        .HasForeignKey("BikeRoubada.Business.Models.Roubo", "IdLocalizacao")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -440,7 +426,7 @@ namespace BikeRoubada.Data.Migrations
 
             modelBuilder.Entity("BikeRoubada.Business.Models.Localizacao", b =>
                 {
-                    b.Navigation("Roubos");
+                    b.Navigation("Roubo");
                 });
 
             modelBuilder.Entity("BikeRoubada.Business.Models.Roubo", b =>

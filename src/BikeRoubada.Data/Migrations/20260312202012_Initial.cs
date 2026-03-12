@@ -7,12 +7,39 @@ using NetTopologySuite.Geometries;
 namespace BikeRoubada.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class App_01 : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Localizacao",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Rua = table.Column<string>(type: "varchar(100)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Numero = table.Column<int>(type: "int", nullable: false),
+                    Complemento = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Bairro = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Cidade = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Estado = table.Column<string>(type: "varchar(50)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Cep = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Coordenadas = table.Column<Point>(type: "point", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Localizacao", x => x.Id);
+                })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -35,6 +62,8 @@ namespace BikeRoubada.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Nome = table.Column<string>(type: "varchar(150)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FotoPerfil = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IdentificadorPessoal = table.Column<string>(type: "varchar(14)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -61,7 +90,11 @@ namespace BikeRoubada.Data.Migrations
                     Rua = table.Column<string>(type: "varchar(100)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Numero = table.Column<int>(type: "int", nullable: false),
+                    Bairro = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Complemento = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Cidade = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Estado = table.Column<string>(type: "varchar(50)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -78,7 +111,8 @@ namespace BikeRoubada.Data.Migrations
                         name: "FK_Enderecos_Usuarios_IdUsuario",
                         column: x => x.IdUsuario,
                         principalTable: "Usuarios",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -90,6 +124,8 @@ namespace BikeRoubada.Data.Migrations
                     Serial = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Descricao = table.Column<string>(type: "varchar(300)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Detalhes = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LocalizacaoCadastro = table.Column<Point>(type: "point", nullable: false),
                     IdEndereco = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -103,12 +139,14 @@ namespace BikeRoubada.Data.Migrations
                         name: "FK_Bicicletas_Enderecos_IdEndereco",
                         column: x => x.IdEndereco,
                         principalTable: "Enderecos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Bicicletas_Usuarios_IdUsuario",
                         column: x => x.IdUsuario,
                         principalTable: "Usuarios",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -132,17 +170,20 @@ namespace BikeRoubada.Data.Migrations
                         name: "FK_Alertas_Bicicletas_BicicletaId",
                         column: x => x.BicicletaId,
                         principalTable: "Bicicletas",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Alertas_TiposAlertas_IdTipoAlerta",
                         column: x => x.IdTipoAlerta,
                         principalTable: "TiposAlertas",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Alertas_Usuarios_UsuarioGeradorId",
                         column: x => x.UsuarioGeradorId,
                         principalTable: "Usuarios",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -155,11 +196,11 @@ namespace BikeRoubada.Data.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DataRoubo = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     DataRecuperacao = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    Localizacao = table.Column<Point>(type: "point", nullable: false),
                     NumeroBoletim = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     IdBicicleta = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    IdLocalizacao = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
@@ -168,7 +209,14 @@ namespace BikeRoubada.Data.Migrations
                         name: "FK_Roubos_Bicicletas_IdBicicleta",
                         column: x => x.IdBicicleta,
                         principalTable: "Bicicletas",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Roubos_Localizacao_IdLocalizacao",
+                        column: x => x.IdLocalizacao,
+                        principalTable: "Localizacao",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -179,24 +227,29 @@ namespace BikeRoubada.Data.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     NomeArquivo = table.Column<string>(type: "varchar(50)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    ConteudoBase64 = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     IdRoubo = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     IdBicicleta = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    BicicletaId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Tipo = table.Column<int>(type: "int", nullable: false),
+                    Destaque = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Arquivos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Arquivos_Bicicletas_BicicletaId",
-                        column: x => x.BicicletaId,
+                        name: "FK_Arquivos_Bicicletas_IdBicicleta",
+                        column: x => x.IdBicicleta,
                         principalTable: "Bicicletas",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Arquivos_Roubos_IdRoubo",
                         column: x => x.IdRoubo,
                         principalTable: "Roubos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -216,9 +269,9 @@ namespace BikeRoubada.Data.Migrations
                 column: "UsuarioGeradorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Arquivos_BicicletaId",
+                name: "IX_Arquivos_IdBicicleta",
                 table: "Arquivos",
-                column: "BicicletaId");
+                column: "IdBicicleta");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Arquivos_IdRoubo",
@@ -244,6 +297,12 @@ namespace BikeRoubada.Data.Migrations
                 name: "IX_Roubos_IdBicicleta",
                 table: "Roubos",
                 column: "IdBicicleta");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Roubos_IdLocalizacao",
+                table: "Roubos",
+                column: "IdLocalizacao",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -263,6 +322,9 @@ namespace BikeRoubada.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Bicicletas");
+
+            migrationBuilder.DropTable(
+                name: "Localizacao");
 
             migrationBuilder.DropTable(
                 name: "Enderecos");

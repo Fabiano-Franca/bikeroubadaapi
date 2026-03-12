@@ -13,8 +13,8 @@ using NetTopologySuite.Geometries;
 namespace BikeRoubada.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250221190140_alter-tables")]
-    partial class altertables
+    [Migration("20260312202012_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,11 +71,17 @@ namespace BikeRoubada.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("ConteudoBase64")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("DataCadastro")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<bool>("Destaque")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<Guid?>("IdBicicleta")
-                        .IsRequired()
                         .HasColumnType("char(36)");
 
                     b.Property<Guid?>("IdRoubo")
@@ -183,6 +189,49 @@ namespace BikeRoubada.Data.Migrations
                     b.ToTable("Enderecos", (string)null);
                 });
 
+            modelBuilder.Entity("BikeRoubada.Business.Models.Localizacao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Bairro")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Cep")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Cidade")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Complemento")
+                        .HasColumnType("longtext");
+
+                    b.Property<Point>("Coordenadas")
+                        .IsRequired()
+                        .HasColumnType("point");
+
+                    b.Property<DateTime>("DataCadastro")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Rua")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Localizacao", (string)null);
+                });
+
             modelBuilder.Entity("BikeRoubada.Business.Models.Roubo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -201,9 +250,8 @@ namespace BikeRoubada.Data.Migrations
                     b.Property<Guid>("IdBicicleta")
                         .HasColumnType("char(36)");
 
-                    b.Property<Point>("Localizacao")
-                        .IsRequired()
-                        .HasColumnType("point");
+                    b.Property<Guid>("IdLocalizacao")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("NumeroBoletim")
                         .IsRequired()
@@ -216,6 +264,9 @@ namespace BikeRoubada.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IdBicicleta");
+
+                    b.HasIndex("IdLocalizacao")
+                        .IsUnique();
 
                     b.ToTable("Roubos", (string)null);
                 });
@@ -277,16 +328,19 @@ namespace BikeRoubada.Data.Migrations
                 {
                     b.HasOne("BikeRoubada.Business.Models.Bicicleta", "Bicicleta")
                         .WithMany()
-                        .HasForeignKey("BicicletaId");
+                        .HasForeignKey("BicicletaId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("BikeRoubada.Business.Models.TipoAlerta", "TipoAlerta")
                         .WithMany("Alertas")
                         .HasForeignKey("IdTipoAlerta")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BikeRoubada.Business.Models.Usuario", "UsuarioGerador")
                         .WithMany()
-                        .HasForeignKey("UsuarioGeradorId");
+                        .HasForeignKey("UsuarioGeradorId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Bicicleta");
 
@@ -300,11 +354,13 @@ namespace BikeRoubada.Data.Migrations
                     b.HasOne("BikeRoubada.Business.Models.Bicicleta", "Bicicleta")
                         .WithMany("Arquivos")
                         .HasForeignKey("IdBicicleta")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BikeRoubada.Business.Models.Roubo", "Roubo")
                         .WithMany("Arquivos")
-                        .HasForeignKey("IdRoubo");
+                        .HasForeignKey("IdRoubo")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Bicicleta");
 
@@ -316,11 +372,13 @@ namespace BikeRoubada.Data.Migrations
                     b.HasOne("BikeRoubada.Business.Models.Endereco", "Endereco")
                         .WithMany("Bicicletas")
                         .HasForeignKey("IdEndereco")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BikeRoubada.Business.Models.Usuario", "Usuario")
                         .WithMany("Bicicletas")
                         .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Endereco");
@@ -332,7 +390,8 @@ namespace BikeRoubada.Data.Migrations
                 {
                     b.HasOne("BikeRoubada.Business.Models.Usuario", "Usuario")
                         .WithMany("Enderecos")
-                        .HasForeignKey("IdUsuario");
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Usuario");
                 });
@@ -342,9 +401,18 @@ namespace BikeRoubada.Data.Migrations
                     b.HasOne("BikeRoubada.Business.Models.Bicicleta", "Bicicleta")
                         .WithMany("Roubos")
                         .HasForeignKey("IdBicicleta")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BikeRoubada.Business.Models.Localizacao", "Localizacao")
+                        .WithOne("Roubo")
+                        .HasForeignKey("BikeRoubada.Business.Models.Roubo", "IdLocalizacao")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Bicicleta");
+
+                    b.Navigation("Localizacao");
                 });
 
             modelBuilder.Entity("BikeRoubada.Business.Models.Bicicleta", b =>
@@ -357,6 +425,11 @@ namespace BikeRoubada.Data.Migrations
             modelBuilder.Entity("BikeRoubada.Business.Models.Endereco", b =>
                 {
                     b.Navigation("Bicicletas");
+                });
+
+            modelBuilder.Entity("BikeRoubada.Business.Models.Localizacao", b =>
+                {
+                    b.Navigation("Roubo");
                 });
 
             modelBuilder.Entity("BikeRoubada.Business.Models.Roubo", b =>
