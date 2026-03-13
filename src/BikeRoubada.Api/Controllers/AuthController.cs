@@ -107,7 +107,7 @@ namespace BikeRoubada.Api.Controllers
             var codeResponse = CodeResponses.UserCreatedEmailSended;
             try
             {
-                await EnviarEmailConfirmacao(user);
+                //await EnviarEmailConfirmacao(user);
             }
             catch (Exception)
             {
